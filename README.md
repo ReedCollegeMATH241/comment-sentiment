@@ -2,7 +2,7 @@
 Max Joslyn  
 May 11, 2015
 
-*For the full writeup, run the Rmd file in the repo.*
+*For the full writeup, run the rmd file in the repo.*
 
 ## Introduction
 
