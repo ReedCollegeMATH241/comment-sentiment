@@ -1,21 +1,38 @@
 ---
-title: "Recognizing Positively-Received Stories on Hacker News by Analyzing User Comments: First Steps"
+title: 'Sentiment Analysis of Comments on Hacker News: First Steps'
 author: "Max Joslyn"
 date: "May 11, 2015"
-output: pdf_document
+output:
+  html_document:
+    self_contained: no
 ---
+
+## Introduction
+
+The goal of **sentiment analysis** is to extract the mood or attitude of a text's author. Techniques and knowledge from statistics, linguistics, and computer science must be combined to identify such information accurately.
+
+**Hacker News** (HN) is a news aggregator focused on startups, science, and technology. Hacker News comments are well-suited to investigation for these reasons:
+
+* HN is an English-language site.
+
+* Site policy and culture keeps discussion relatively civil.
+
+* By Internet standards, posts are long and well-edited.
+
+* The website can be accessed programmatically through a crude but functional official API, as well as through community packages which predate the official one.
+
+## The Question
+
+What stories do HN commenters react to positively? negatively?
+
 
 ```{r, echo=FALSE}
 #remember to set the working directory to this file's location
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr))
-suppressPackageStartupMessages(library(qdap))
-suppressPackageStartupMessages(library(jsonlite))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(qdap)))
+suppressWarnings(suppressMessages(library(jsonlite)))
 ```
-
-#Intro
-
-Hacker News (HN) is an aggregator for news items related to startups and technology. What I've done here is a (very basic) investigation into the comments on some recent HN posts.
 
 ```{r, echo=FALSE}
 #Convert a JSON file containing a Hacker News comment to a dataframe using functions from dplyr.
@@ -60,7 +77,9 @@ stories.frame <- left_join(comment.polar, json.frame, by=c("group.story_id" = "s
 
 ```
 
-This list actually contains recent stories with the 3rd through 12th highest positive polarity of comments. I've removed the actual top two stories, which have extremely high positive polarity, because I suspect they are a fluke of qdap's algorithms. I don't have proof, though, so it definitely merits further investigation.
+The bulk of the code has been run. Here is the list of the top stories by level of positive sentiment.
+
+(Note: this list actually contains recent stories with the 3rd- through 12th-highest positive polarity of comments, and not the 1st- through 12th-highest. I've removed the actual top two stories, which have extremely high positive polarity, because I suspect they are a fluke of the primary sentiment-detection algorithms. I don't have proof, though, so it merits further investigation.)
 
 ```{r, echo=FALSE}
 
@@ -71,7 +90,7 @@ stories.frame %>%
 
 ```
 
-Next, here are the recent stories with the highest **negative** polarity of comments. Note that the stories with the **highest** negativity, i.e. the most negative response, are at the **top** of the list.
+Next, here are the recent stories with the highest **negative** polarity of comments. Note that the stories with the **highest** negativity, i.e. the most negative response, are at the **top** of this list.
 
 ```{r, echo=FALSE}
 stories.frame %>%
@@ -81,12 +100,25 @@ stories.frame %>%
 ```
 
 
-#Further Investigation
+## Further Investigation
 
-My work here is rudimentary at best. The following are all avenues to deeper insight:
+My work here is rudimentary at best. Here are some questions or steps to be taken that would improve this analysis.
 
-* more precise selection of comments to be scraped
+* More precise selection of comments, such as by setting a range of dates to scrape within.
 
-* examining correlation between the points a story gets and the polarity of comments
+* Restriction of comments to those scraped from articles on a particular topic or field.
 
-One assumption I've made that could stand to use some testing is the one that positive-polarity comments mean a well-received article. This is not necessarily true. Here is one scenario: the first few commenters point out the obvious flaws in the story. Later commenters engage in optimistic discourse about how to improve the story, rather than rehashing the bad points. In this case, there could be a lot of positive sentiment in the comments, even if the article really wasn't very well-received.
+* Examining the relation between the points a story receives (which determine its visibility on the site) and the sentiment of its comments.
+
+* How does comment sentiment change from when an article is first linked on HN, to when it has gained some popularity on the site?
+
+* Do positive-polarity comments necessarily indicate a well-received article? Consider this scenario: the first few commenters point out the obvious flaws in the story. Later commenters engage in optimistic discourse about how to improve the story, rather than rehashing its flaws again. In this case, there could be a lot of positive sentiment in the comments, even if the article really wasn't very well-received by the users.
+
+* As mentioned above: there seem to be flaws or weak spots in the sentiment tools provided by the qdap package. Some of this might be fixed by better data selection and cleaning, and some it might be fixed by tweaking the word lists used internally by the package.
+
+* It would also be worth investigating the academic literature on sentiment analysis for cutting-edge algorithms and directions in analysis. I was only able to read one or two papers during the course of this project, and there's a lot out there.
+
+
+### Notes
+
+This is my final project for Math 241: Case Studies in Statistical Analysis, a class at Reed College with instructor **Albert Kim**.
