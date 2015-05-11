@@ -1,0 +1,3 @@
+[submodule "lib/hackernews-scraper"]
+	path = lib/hackernews-scraper
+	url = https://github.com/NiGhTTraX/hackernews-scraper.git
