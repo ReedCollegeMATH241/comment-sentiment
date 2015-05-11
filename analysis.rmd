@@ -1,0 +1,92 @@
+---
+title: "Recognizing Positively-Received Stories on Hacker News by Analyzing User Comments: First Steps"
+author: "Max Joslyn"
+date: "May 11, 2015"
+output: pdf_document
+---
+
+```{r, echo=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(qdap))
+suppressPackageStartupMessages(library(jsonlite))
+```
+
+#Intro
+
+Hacker News is a 
+
+```{r, echo=FALSE}
+#Convert a JSON file containing a Hacker News comment to a dataframe using functions from dplyr.
+convert.JSON <- function(arg) {
+  return(data_frame(text = arg$comment_text,
+                    comment_id = arg$comment_id,
+                    story_url = arg$story_url
+                    )
+         )
+  }
+
+#Cleans HTML markup from text.
+#Source: http://stackoverflow.com/a/17227415/4844702
+cleanHTML <- function(htmlString) {
+  return(gsub("<.*?>", " ", htmlString))
+}
+
+json.names <- list.files(pattern="/comments/*.json")
+json.list <- lapply(json.names, function(x) fromJSON(txt=x))
+
+json.list <- lapply(json.list, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+
+json.matrix <- do.call("rbind", json.list)
+json.frame <- as.data.frame(json.matrix) %>% tbl_df()
+json.frame <- mutate(json.frame, comment_text = as.character(comment_text))
+  
+
+json.frame <- mutate(json.frame, comment_text = cleanHTML(comment_text))
+json.frame <- mutate(json.frame, comment_text = gsub(pattern="&#x27;", replacement="", x=comment_text))
+
+comment.polar <- (polarity(json.frame$comment_text, grouping.var = json.frame$story_id))[2]
+comment.polar <- as.data.frame(comment.polar[1])
+
+stories.frame <- left_join(comment.polar, json.frame, by=c("group.story_id" = "story_id")) %>%
+  filter(group.ave.polarity != 0) %>%
+  filter(is.na(group.stan.mean.polarity) == FALSE) %>%
+  filter(story_url != "") %>%
+  select(group.story_id:group.stan.mean.polarity, story_title, story_url) %>%
+  distinct()
+
+```
+
+This list actually contains recent stories with the 3rd through 12th highest positive polarity of comments. I've removed the actual top two stories, which have extremely high positive polarity, because I suspect they are a fluke of qdap's algorithms. I don't have proof, though, so it definitely merits further investigation.
+
+```{r, echo=FALSE}
+
+stories.frame %>%
+  arrange(desc(group.stan.mean.polarity)) %>%
+  select(story_title) %>%
+  slice(3:12)
+
+```
+
+Next, here are the recent stories with the highest **negative** polarity of comments. Note that the stories with the **highest** negativity, i.e. the most negative response, are at the **top** of the list.
+
+```{r, echo=FALSE}
+stories.frame %>%
+  arrange(desc(group.stan.mean.polarity)) %>%
+  select(story_title) %>%
+  slice(76:66)
+```
+
+
+#Further Investigation
+
+My work here is rudimentary at best. The following are all avenues to deeper insight:
+
+* more precise selection of comments to be scraped
+
+* examining correlation between the points a story gets and the polarity of comments
+
+One assumption I've made that could stand to use some testing is the one that positive-polarity comments mean a well-received article. This is not necessarily true. Here is one scenario: the first few commenters point out the obvious flaws in the story. Later commenters engage in optimistic discourse about how to improve the story, rather than rehashing the bad points. In this case, there could be a lot of positive sentiment in the comments, even if the article really wasn't very well-received.
