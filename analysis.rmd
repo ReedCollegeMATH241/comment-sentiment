@@ -6,6 +6,7 @@ output: pdf_document
 ---
 
 ```{r, echo=FALSE}
+#remember to set the working directory to this file's location
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(qdap))
@@ -14,7 +15,7 @@ suppressPackageStartupMessages(library(jsonlite))
 
 #Intro
 
-Hacker News is a 
+Hacker News (HN) is an aggregator for news items related to startups and technology. What I've done here is a (very basic) investigation into the comments on some recent HN posts.
 
 ```{r, echo=FALSE}
 #Convert a JSON file containing a Hacker News comment to a dataframe using functions from dplyr.
@@ -32,7 +33,7 @@ cleanHTML <- function(htmlString) {
   return(gsub("<.*?>", " ", htmlString))
 }
 
-json.names <- list.files(pattern="/comments/*.json")
+json.names <- list.files(path="comments", pattern="*.json", full.names=TRUE)
 json.list <- lapply(json.names, function(x) fromJSON(txt=x))
 
 json.list <- lapply(json.list, function(x) {
@@ -41,10 +42,9 @@ json.list <- lapply(json.list, function(x) {
 })
 
 json.matrix <- do.call("rbind", json.list)
-json.frame <- as.data.frame(json.matrix) %>% tbl_df()
-json.frame <- mutate(json.frame, comment_text = as.character(comment_text))
-  
+json.frame <- tbl_df(as.data.frame(json.matrix))
 
+json.frame <- mutate(json.frame, comment_text = as.character(comment_text))
 json.frame <- mutate(json.frame, comment_text = cleanHTML(comment_text))
 json.frame <- mutate(json.frame, comment_text = gsub(pattern="&#x27;", replacement="", x=comment_text))
 
