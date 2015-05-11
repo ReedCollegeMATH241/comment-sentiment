@@ -25,6 +25,10 @@ The goal of **sentiment analysis** is to extract the mood or attitude of a text'
 
 What stories do HN commenters react to positively? negatively?
 
+## Method
+
+1000 recent comments from Hacker News were downloaded using a Python script which made use of the package `hackernews-scraper`. That script is included in this project. The comments are in JSON format.
+
 
 ```{r, echo=FALSE}
 #remember to set the working directory to this file's location
@@ -32,9 +36,7 @@ suppressWarnings(suppressMessages(library(dplyr)))
 suppressWarnings(suppressMessages(library(tidyr)))
 suppressWarnings(suppressMessages(library(qdap)))
 suppressWarnings(suppressMessages(library(jsonlite)))
-```
 
-```{r, echo=FALSE}
 #Convert a JSON file containing a Hacker News comment to a dataframe using functions from dplyr.
 convert.JSON <- function(arg) {
   return(data_frame(text = arg$comment_text,
@@ -49,7 +51,11 @@ convert.JSON <- function(arg) {
 cleanHTML <- function(htmlString) {
   return(gsub("<.*?>", " ", htmlString))
 }
+```
 
+The JSON comment files are imported to R with the `jsonlite` package.
+
+```{r, echo=FALSE}
 json.names <- list.files(path="comments", pattern="*.json", full.names=TRUE)
 json.list <- lapply(json.names, function(x) fromJSON(txt=x))
 
@@ -57,14 +63,22 @@ json.list <- lapply(json.list, function(x) {
   x[sapply(x, is.null)] <- NA
   unlist(x)
 })
+```
 
+The comments are cleaned of HTML tags, and the HTML code for the apostrophe (') is removed. Other HTML codes are not touched.
+
+```{r, echo=FALSE}
 json.matrix <- do.call("rbind", json.list)
 json.frame <- tbl_df(as.data.frame(json.matrix))
 
 json.frame <- mutate(json.frame, comment_text = as.character(comment_text))
 json.frame <- mutate(json.frame, comment_text = cleanHTML(comment_text))
 json.frame <- mutate(json.frame, comment_text = gsub(pattern="&#x27;", replacement="", x=comment_text))
+```
 
+The polarity of comments is calculated, and then the polarity of reaction to each story is calculated from the polarities of its comments.
+
+```{r, echo=FALSE}
 comment.polar <- (polarity(json.frame$comment_text, grouping.var = json.frame$story_id))[2]
 comment.polar <- as.data.frame(comment.polar[1])
 
@@ -111,6 +125,8 @@ My work here is rudimentary at best. Here are some questions or steps to be take
 * Examining the relation between the points a story receives (which determine its visibility on the site) and the sentiment of its comments.
 
 * How does comment sentiment change from when an article is first linked on HN, to when it has gained some popularity on the site?
+
+* Removal of more unnecessary HTML alt-character codes than the apostrophe.
 
 * Do positive-polarity comments necessarily indicate a well-received article? Consider this scenario: the first few commenters point out the obvious flaws in the story. Later commenters engage in optimistic discourse about how to improve the story, rather than rehashing its flaws again. In this case, there could be a lot of positive sentiment in the comments, even if the article really wasn't very well-received by the users.
 
