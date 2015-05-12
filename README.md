@@ -10,7 +10,7 @@ The goal of **sentiment analysis** is to extract the mood or attitude of a text'
 
 **Hacker News** (HN) is a news aggregator focused on startups, science, and technology.
 
-## The Question
+## Research Question
 
 What stories do HN commenters react to positively? negatively?
 
