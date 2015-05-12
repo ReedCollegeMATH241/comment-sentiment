@@ -3,31 +3,39 @@ title: 'Sentiment Analysis of Comments on Hacker News: First Steps'
 author: "Max Joslyn"
 date: "May 11, 2015"
 output:
-  html_document:
-    self_contained: no
+  html_document: default
 ---
 
 ## Introduction
 
-The goal of **sentiment analysis** is to extract the mood or attitude of a text's author. Techniques and knowledge from statistics, linguistics, and computer science must be combined to identify such information accurately.
+The goal of **sentiment analysis**, also called sentiment or opinion mining, is to extract the mood or attitude of a text's author. Techniques and knowledge from statistics, linguistics, and computer science must be combined to identify such information accurately. One example in the academic literature is [Hu and Liu 2004](http://www.cs.uic.edu/~liub/publications/kdd04-revSummary.pdf). This paper illustrates one prominent pplications of sentiment mining, which is the investigation of reviews (for any kind of product: movie, gadget, food, etc.) The information gained from the analysis helps determine which features of a product are most liked or disliked by users. This in turn guides business decisions, such as deciding which features to prioritize for revision in the next version of the product.
 
-**Hacker News** (HN) is a news aggregator focused on startups, science, and technology. Hacker News comments are well-suited to investigation for these reasons:
+## Data
+
+**Hacker News** (HN) is a news aggregator focused on startups, science, and technology. The data set for this project consists of comments made by HN users on articles posted by other users. Hacker News comments are well-suited to sentiment analysis for these reasons:
 
 * HN is an English-language site.
 
 * Site policy and culture keeps discussion relatively civil.
 
-* By Internet standards, posts are long and well-edited.
+* By Internet standards, comments are long and well-edited.
 
 * The website can be accessed programmatically through a crude but functional official API, as well as through community packages which predate the official one.
 
-## The Question
+## Research Question
 
 What stories do HN commenters react to positively? negatively?
 
-## Method
+## Methods
 
-1000 recent comments from Hacker News were downloaded using a Python script which made use of the package `hackernews-scraper`. That script is included in this project. The comments are in JSON format.
+Using a Python script, which in turn employs the package `hackernews-scraper`, 1000 recent comments were downloaded from Hacker News. My script is included in this project. The comments are in JSON format, which is a standard for representing objects as text. If you are unfamiliar with JSON, here is an example. Suppose we we want to store a person's name and surname, their eye color, and their user ID as a JSON file. It would look like this:
+
+{
+  "name":"Bob"
+  "surname":"Johnson"
+  "eyes":"green"
+  "ID": 12345
+}
 
 
 ```{r, echo=FALSE}
@@ -76,10 +84,16 @@ json.frame <- mutate(json.frame, comment_text = cleanHTML(comment_text))
 json.frame <- mutate(json.frame, comment_text = gsub(pattern="&#x27;", replacement="", x=comment_text))
 ```
 
+**Polarity** is a basic measure of an item's sentiment. It has two components:
+
+1. Whether the item is positive or negative.
+
+2. How large the value of the positivity or negativity is.
+
 The polarity of comments is calculated, and then the polarity of reaction to each story is calculated from the polarities of its comments.
 
 ```{r, echo=FALSE}
-comment.polar <- (polarity(json.frame$comment_text, grouping.var = json.frame$story_id))[2]
+comment.polar <- suppressWarnings((polarity(json.frame$comment_text, grouping.var = json.frame$story_id))[2])
 comment.polar <- as.data.frame(comment.polar[1])
 
 stories.frame <- left_join(comment.polar, json.frame, by=c("group.story_id" = "story_id")) %>%
@@ -91,7 +105,7 @@ stories.frame <- left_join(comment.polar, json.frame, by=c("group.story_id" = "s
 
 ```
 
-The bulk of the code has been run. Here is the list of the top stories by level of positive sentiment.
+Code has been run behind the scenes: here is the list of the top stories by level of positive sentiment.
 
 (Note: this list actually contains recent stories with the 3rd- through 12th-highest positive polarity of comments, and not the 1st- through 12th-highest. I've removed the actual top two stories, which have extremely high positive polarity, because I suspect they are a fluke of the primary sentiment-detection algorithms. I don't have proof, though, so it merits further investigation.)
 
