@@ -3,7 +3,10 @@ title: 'Sentiment Analysis of Comments on Hacker News: First Steps'
 author: "Max Joslyn"
 date: "May 11, 2015"
 output:
-  html_document: default
+  pdf_document: default
+  html_document:
+    keep_md: yes
+    self_contained: no
 ---
 
 ## Introduction
@@ -124,7 +127,7 @@ Next, here are the recent stories with the highest **negative** polarity of comm
 stories.frame %>%
   arrange(desc(group.stan.mean.polarity)) %>%
   select(story_title) %>%
-  slice(76:66)
+  slice(76:67)
 ```
 
 

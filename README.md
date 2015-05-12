@@ -2,7 +2,7 @@
 Max Joslyn  
 May 11, 2015
 
-*For the full writeup, see the HTML file in the repo.*
+*For the full writeup, see the PDF file in the repo.*
 
 ## Introduction
 
