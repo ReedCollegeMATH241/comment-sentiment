@@ -1,0 +1,195 @@
+---
+title: 'Sentiment Analysis of Online Comments'
+author: "Max Joslyn"
+date: "May 13, 2015"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+    transition: 0
+---
+
+## Sentiment Analysis
+
+CS, linguistics, statistics
+
+extraction and classification of:
+
+- subjective/object
+
+- emotion
+
+- positive/negative
+
+## Example Applications
+
+market research
+
+- "what needs fixing?"
+
+sociolinguistics
+
+- quantify emotional expression
+
+finance
+
+- trend prediction
+
+medicine
+
+- drugs and effects
+
+
+## Data Source
+
+Hacker News
+
+- aggregator website
+
+focused on
+
+- startups
+
+- technology
+
+
+## Why Hacker News?
+
+- English
+
+- firm moderation
+
+- relatively clean comments
+
+- official and third-party access
+
+
+## Research Question
+
+What stories do HN commenters react to positively? negatively?
+
+- Better research question later
+
+## Data
+
+1000 recent comments
+
+- site-wide scraping
+
+JSON Format
+
+- example describing an employee
+
+{
+  
+  "name":"Bob"
+  
+  "surname":"Johnson"
+  
+  "position": "junior engineer"
+  
+  "ID": 12345
+  
+}
+
+## Methods
+
+measuring **polarity**
+
+- by story, from comments
+
+two components:
+
+- positive or negative?
+
+- strong or weak?
+
+
+```{r, echo=FALSE}
+#remember to set the working directory to this file's location
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(qdap)))
+suppressWarnings(suppressMessages(library(jsonlite)))
+
+#Convert a JSON file containing a Hacker News comment to a dataframe using functions from dplyr.
+convert.JSON <- function(arg) {
+  return(data_frame(text = arg$comment_text,
+                    comment_id = arg$comment_id,
+                    story_url = arg$story_url
+                    )
+         )
+  }
+
+#Cleans HTML markup from text.
+#Source: http://stackoverflow.com/a/17227415/4844702
+cleanHTML <- function(htmlString) {
+  return(gsub("<.*?>", " ", htmlString))
+}
+```
+
+```{r, echo=FALSE}
+json.names <- list.files(path="comments", pattern="*.json", full.names=TRUE)
+json.list <- lapply(json.names, function(x) fromJSON(txt=x))
+
+json.list <- lapply(json.list, function(x) {
+  x[sapply(x, is.null)] <- NA
+  unlist(x)
+})
+```
+
+```{r, echo=FALSE}
+json.matrix <- do.call("rbind", json.list)
+json.frame <- tbl_df(as.data.frame(json.matrix))
+
+json.frame <- mutate(json.frame, comment_text = as.character(comment_text))
+json.frame <- mutate(json.frame, comment_text = cleanHTML(comment_text))
+json.frame <- mutate(json.frame, comment_text = gsub(pattern="&#x27;", replacement="", x=comment_text))
+```
+
+```{r, echo=FALSE}
+comment.polar <- suppressWarnings((polarity(json.frame$comment_text, grouping.var = json.frame$story_id))[2])
+comment.polar <- as.data.frame(comment.polar[1])
+
+stories.frame <- left_join(comment.polar, json.frame, by=c("group.story_id" = "story_id")) %>%
+  filter(group.ave.polarity != 0) %>%
+  filter(is.na(group.stan.mean.polarity) == FALSE) %>%
+  filter(story_url != "") %>%
+  select(group.story_id:group.stan.mean.polarity, story_title, story_url) %>%
+  distinct()
+
+```
+
+## Stories with Most Positive Comment Section (high to low)
+
+```{r, echo=FALSE}
+
+stories.frame %>%
+  arrange(desc(group.stan.mean.polarity)) %>%
+  select(story_title) %>%
+  slice(3:12)
+
+```
+
+## Stories with Most Negative Comment Section (high to low)
+
+```{r, echo=FALSE}
+stories.frame %>%
+  arrange(desc(group.stan.mean.polarity)) %>%
+  select(story_title) %>%
+  slice(76:67)
+```
+
+
+## Areas for Improvement
+
+- relation between story points, comment sentiment
+
+- sentiment change over time
+
+- better data cleaning, selection
+
+- other techniques from literature
+
+## Better Research Question
+
+What's the difference between average comment sentiment **before** and **after** recent changes to moderation policy?
