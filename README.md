@@ -6,7 +6,7 @@ May 11, 2015
 
 ## Introduction
 
-The goal of **sentiment analysis**, also called sentiment or opinion mining, is to extract the mood or attitude of a text's author. Techniques and knowledge from statistics, linguistics, and computer science must be combined to identify such information accurately. One example in the academic literature is [Hu and Liu 2004](http://www.cs.uic.edu/~liub/publications/kdd04-revSummary.pdf). This paper illustrates one prominent pplications of sentiment mining, which is the investigation of reviews (for any kind of product: movie, gadget, food, etc.) The information gained from the analysis helps determine which features of a product are most liked or disliked by users. This in turn guides business decisions, such as deciding which features to prioritize for revision in the next version of the product.
+The goal of **sentiment analysis**, also called sentiment or opinion mining, is to extract the mood or attitude of a text's author. Techniques and knowledge from statistics, linguistics, and computer science must be combined to identify such information accurately. One example in the academic literature is [Hu and Liu 2004](http://www.cs.uic.edu/~liub/publications/kdd04-revSummary.pdf). This paper illustrates one prominent applications of sentiment mining, which is the investigation of reviews (for any kind of product: movie, gadget, food, etc.) The information gained from the analysis helps determine which features of a product are most liked or disliked by users. This in turn guides business decisions, such as deciding which features to prioritize for revision in the next version of the product.
 
 ## Data
 
